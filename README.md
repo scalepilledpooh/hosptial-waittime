@@ -1,4 +1,59 @@
-# hosptial-waittime
+# Abuja Hospital Wait Time Tracker
+
+A web application that helps users find hospitals in Abuja with the shortest emergency room wait times.
+
+## Features
+
+- View hospital locations on an interactive map
+- See current wait times and bed availability
+- Submit anonymous wait time reports
+- Filter hospitals by distance and current wait times
+
+## Setup
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/hosptial-waittime.git
+   cd hosptial-waitime
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+   Create a `.env` file in the root directory with your Supabase credentials:
+   ```
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   ```
+
+4. Set up the database:
+   - Run the SQL in `scripts/setup_db.sql` in your Supabase SQL editor
+   - Import initial hospital data:
+     ```bash
+     npm run import-osm
+     ```
+
+## Development
+
+Start the development server:
+```bash
+npm run dev
+```
+
+## Project Structure
+
+- `/scripts/` - Database setup and data import scripts
+- `/public/` - Static files
+- `/src/` - Application source code (to be implemented)
+
+## License
+
+MIT
+
+---
 
 # Abuja ER Wait-Time Map – Product Requirements Document (MVP)
 

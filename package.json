@@ -2,18 +2,23 @@
   "name": "abj-waittime",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "build": "tsc",
-    "seed": "ts-node scripts/seed_hospitals.ts",
-    "import-osm": "ts-node scripts/import_osm.ts"
+    "seed": "tsx scripts/seed_hospitals.ts",
+    "import-osm": "tsx scripts/import_osm.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.6",
-    "csv-parse": "^5.5.0"
+    "csv-parse": "^5.5.0",
+    "dotenv": "^16.5.0",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
+    "@types/node": "^22.15.30",
+    "@types/node-fetch": "^2.6.12",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.4",
     "typescript": "^5.4.0"
   }
 }

@@ -1,4 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import fetch from 'node-fetch';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
