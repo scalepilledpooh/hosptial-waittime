@@ -12,17 +12,29 @@ const map = new mapboxgl.Map({
 navigator.geolocation.getCurrentPosition((pos) => {
     map.setCenter([pos.coords.longitude, pos.coords.latitude]);
 }, () => { });
+const loadingEl = document.getElementById('loading');
+const errorEl = document.getElementById('error-message');
 async function fetchHospitals(query = '') {
-    const { data, error } = await supabase
-        .from('hospitals')
-        .select(`*, aggregated_wait(est_wait, report_count, last_updated)`) // left join view
-        .ilike('name', `%${query}%`)
-        .order('name');
-    if (error) {
-        console.error('Error fetching hospitals', error.message);
+    loadingEl.classList.remove('hidden');
+    errorEl.textContent = '';
+    try {
+        const { data, error } = await supabase
+            .from('hospitals')
+            .select(`*, aggregated_wait(est_wait, report_count, last_updated)`) // left join view
+            .ilike('name', `%${query}%`)
+            .order('name');
+        if (error)
+            throw error;
+        return data;
+    }
+    catch (err) {
+        console.error('Error fetching hospitals', err.message ?? err);
+        errorEl.textContent = 'Failed to load hospitals.';
         return [];
     }
-    return data;
+    finally {
+        loadingEl.classList.add('hidden');
+    }
 }
 let markers = [];
 function renderHospitals(list) {
@@ -40,9 +52,17 @@ function renderHospitals(list) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(form);
-            const wait = formData.get('wait');
-            const capacity = formData.get('capacity');
-            const comment = formData.get('comment');
+            const wait = formData.get('wait')?.toString();
+            const capacity = formData.get('capacity')?.toString();
+            const comment = formData.get('comment')?.toString();
+            if (!wait && !capacity) {
+                alert('Please provide wait minutes or capacity.');
+                return;
+            }
+            if (comment && comment.length > 280) {
+                alert('Comment is too long (280 characters max).');
+                return;
+            }
             const { error } = await supabase.from('reports').insert({
                 hospital_id: h.id,
                 wait_minutes: wait ? Number(wait) : null,

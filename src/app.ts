@@ -36,18 +36,28 @@ interface Hospital {
   } | null;
 }
 
-async function fetchHospitals(query = ''): Promise<Hospital[]> {
-  const { data, error } = await supabase
-    .from('hospitals')
-    .select(`*, aggregated_wait(est_wait, report_count, last_updated)`) // left join view
-    .ilike('name', `%${query}%`)
-    .order('name');
+const loadingEl = document.getElementById('loading') as HTMLElement;
+const errorEl = document.getElementById('error-message') as HTMLElement;
 
-  if (error) {
-    console.error('Error fetching hospitals', error.message);
+async function fetchHospitals(query = ''): Promise<Hospital[]> {
+  loadingEl.classList.remove('hidden');
+  errorEl.textContent = '';
+  try {
+    const { data, error } = await supabase
+      .from('hospitals')
+      .select(`*, aggregated_wait(est_wait, report_count, last_updated)`) // left join view
+      .ilike('name', `%${query}%`)
+      .order('name');
+
+    if (error) throw error;
+    return data as Hospital[];
+  } catch (err: any) {
+    console.error('Error fetching hospitals', err.message ?? err);
+    errorEl.textContent = 'Failed to load hospitals.';
     return [];
+  } finally {
+    loadingEl.classList.add('hidden');
   }
-  return data as Hospital[];
 }
 
 let markers: any[] = [];
@@ -70,9 +80,18 @@ function renderHospitals(list: Hospital[]) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
-      const wait = formData.get('wait');
-      const capacity = formData.get('capacity');
-      const comment = formData.get('comment');
+      const wait = formData.get('wait')?.toString();
+      const capacity = formData.get('capacity')?.toString();
+      const comment = formData.get('comment')?.toString();
+
+      if (!wait && !capacity) {
+        alert('Please provide wait minutes or capacity.');
+        return;
+      }
+      if (comment && comment.length > 280) {
+        alert('Comment is too long (280 characters max).');
+        return;
+      }
 
       const { error } = await supabase.from('reports').insert({
         hospital_id: h.id,
