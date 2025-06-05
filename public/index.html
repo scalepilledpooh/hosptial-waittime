@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abuja Hospital Wait Times</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="config.js"></script>
+</head>
+<body>
+  <h1>Abuja Hospital Wait Times</h1>
+
+  <section id="auth-section">
+    <form id="login-form">
+      <input type="email" id="login-email" placeholder="Email" required />
+      <button type="submit">Send Magic Link</button>
+    </form>
+    <div id="auth-status"></div>
+  </section>
+
+  <input type="text" id="search" placeholder="Search hospitals" />
+  <ul id="hospital-list"></ul>
+
+  <template id="report-template">
+    <form class="report-form">
+      <input type="number" name="wait" min="0" placeholder="Wait minutes" />
+      <select name="capacity">
+        <option value="2">Plenty</option>
+        <option value="1">Limited</option>
+        <option value="0">Full</option>
+      </select>
+      <input type="text" name="comment" placeholder="Optional comment" />
+      <button type="submit">Submit</button>
+    </form>
+  </template>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
