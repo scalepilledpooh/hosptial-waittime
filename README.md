@@ -164,3 +164,4 @@ Footnotes
 3. Create a `.env` file with your `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
 4. Put hospital info in `scripts/hospitals.csv` (see example row).
 5. Execute `npm run seed` to upload hospitals to Supabase.
+6. Or run `npm run import-osm` to fetch hospital data from OpenStreetMap and upload it automatically.
