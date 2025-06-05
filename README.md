@@ -154,4 +154,13 @@ Add +50 % buffer if brand-new to JS.
 
 Footnotes
 	•	Several Nigerian studies report tertiary-hospital outpatient waits of 60 – 160 min; ample head-room for improvement.
-	•	FCT Ministry of Health PDF lists > 300 facilities; filter to ≈ 30 with 24 h ED service for launch.
+        •       FCT Ministry of Health PDF lists > 300 facilities; filter to ≈ 30 with 24 h ED service for launch.
+
+
+## Local Setup
+
+1. Install [Node.js](https://nodejs.org/) 18 or later.
+2. Run `npm install` to fetch dependencies.
+3. Create a `.env` file with your `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+4. Put hospital info in `scripts/hospitals.csv` (see example row).
+5. Execute `npm run seed` to upload hospitals to Supabase.
