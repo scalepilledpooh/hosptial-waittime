@@ -1,12 +1,13 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = (window as any).SUPABASE_URL;
-const supabaseKey = (window as any).SUPABASE_ANON_KEY;
-const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey);
+// Initialize Supabase
+const supabase = window.supabase.createClient(
+  window.SUPABASE_URL,
+  window.SUPABASE_ANON_KEY
+);
 
-declare const mapboxgl: any;
-mapboxgl.accessToken = (window as any).MAPBOX_TOKEN;
-
+// Initialize Mapbox
+mapboxgl.accessToken = window.MAPBOX_TOKEN;
 const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v12',
