@@ -43,3 +43,18 @@ body {
   color: #555;
   margin-top: 1rem;
 }
+
+.recent-comments {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.recent-comments ul {
+  padding-left: 1rem;
+  margin: 0;
+}
+
+.recent-comments li {
+  margin-bottom: 0.25rem;
+}
