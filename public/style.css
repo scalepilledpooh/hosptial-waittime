@@ -1,0 +1,45 @@
+body {
+  font-family: sans-serif;
+  margin: 1rem;
+}
+
+#hospital-list li {
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+}
+
+#map {
+  width: 100%;
+  height: 60vh;
+  margin-top: 1rem;
+}
+
+@media (min-width: 600px) {
+  #map {
+    height: 500px;
+  }
+}
+
+#loading {
+  margin-top: 0.5rem;
+}
+
+.hidden {
+  display: none;
+}
+
+.error {
+  color: #c00;
+  margin-top: 0.5rem;
+}
+
+.report-form {
+  margin-top: 0.5rem;
+}
+
+.disclaimer {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 1rem;
+}

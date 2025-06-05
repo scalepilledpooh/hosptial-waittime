@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp dist/src/app.js public/app.js",
     "seed": "tsx scripts/seed_hospitals.ts",
     "import-osm": "tsx scripts/import_osm.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.6",
+    "@types/mapbox-gl": "^3.4.1",
     "csv-parse": "^5.5.0",
     "dotenv": "^16.5.0",
+    "mapbox-gl": "^3.12.0",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {

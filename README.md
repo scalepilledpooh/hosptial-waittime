@@ -28,6 +28,8 @@ A web application that helps users find hospitals in Abuja with the shortest eme
    SUPABASE_URL=your_supabase_url
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
    ```
+   Copy `public/config.sample.js` to `public/config.js` and fill in your
+   `SUPABASE_URL` and `public` anon key so the front-end can connect.
 
 4. Set up the database:
    - Run the SQL in `scripts/setup_db.sql` in your Supabase SQL editor
@@ -35,12 +37,15 @@ A web application that helps users find hospitals in Abuja with the shortest eme
      ```bash
      npm run import-osm
      ```
+   The SQL script creates RLS policies so anyone can read data and submit new
+   reports, while only the service role can modify or delete existing reports.
 
 ## Development
 
-Start the development server:
+Build the front-end and open `public/index.html` with any static server:
 ```bash
-npm run dev
+npm run build
+npx http-server public
 ```
 
 ## Project Structure
@@ -144,9 +149,9 @@ created_at TIMESTAMPTZ DEFAULT now()
 -- reports table
 id  SERIAL PRIMARY KEY
 hospital_id INT REFERENCES hospitals(id)
-wait_minutes INT            -- nullable if turned-away flag used
-capacity_enum SMALLINT      -- 0 = full, 1 = limited, 2 = plenty
-comment TEXT
+wait_minutes INT CHECK (wait_minutes IS NULL OR (wait_minutes >= 0 AND wait_minutes <= 720))
+capacity_enum SMALLINT CHECK (capacity_enum BETWEEN 0 AND 2) -- 0 = full, 1 = limited, 2 = plenty
+comment TEXT CHECK (comment IS NULL OR CHAR_LENGTH(comment) <= 280)
 created_at TIMESTAMPTZ DEFAULT now()
 ip_hash TEXT                -- SHA-256(ip) for rate-limiting
 
@@ -156,6 +161,14 @@ aggregated_wait
   est_wait INT
   report_count INT
   updated_at TIMESTAMPTZ
+  -- refreshed every 15 min by an edge function
+
+-- view for analytics
+daily_report_counts
+  hospital_id INT
+  report_date DATE
+  report_count INT
+  avg_wait INT
 
 
 ⸻
@@ -220,3 +233,10 @@ Footnotes
 4. Put hospital info in `scripts/hospitals.csv` (see example row).
 5. Execute `npm run seed` to upload hospitals to Supabase.
 6. Or run `npm run import-osm` to fetch hospital data from OpenStreetMap and upload it automatically.
+7. Deploy the refresh function to Supabase and schedule it every 15 minutes:
+   ```bash
+   supabase functions deploy refresh_aggregated_wait --no-verify-jwt
+   ```
+   In the Supabase dashboard, open **Edge Functions → Schedules** and set the
+   `refresh_aggregated_wait` function to run every 15 minutes. If you prefer,
+   any external cron service can hit the function URL on the same interval.
