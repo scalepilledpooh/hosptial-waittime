@@ -101,15 +101,20 @@ function renderHospitals(hospitals) {
 
   hospitals.forEach(hospital => {
     const popupContent = document.createElement('div');
-    const waitTime = hospital.aggregated_wait?.est_wait !== undefined ? 
-      hospital.aggregated_wait.est_wait : 'n/a';
-    const lastUpdated = hospital.aggregated_wait?.last_updated ? 
+    const waitMinutes = hospital.aggregated_wait?.est_wait;
+    const waitTime = waitMinutes !== undefined && waitMinutes !== null ?
+      waitMinutes : 'n/a';
+    const waitClass = typeof waitMinutes !== 'number' ? 'wait-unknown'
+      : waitMinutes <= 15 ? 'wait-short'
+      : waitMinutes <= 30 ? 'wait-medium'
+      : 'wait-long';
+    const lastUpdated = hospital.aggregated_wait?.last_updated ?
       ` (updated ${new Date(hospital.aggregated_wait.last_updated).toLocaleTimeString()})` : '';
     const reportCount = hospital.aggregated_wait?.report_count || 0;
 
     popupContent.innerHTML = `
       <strong>${hospital.name}</strong><br>
-      Wait: ${waitTime} min${lastUpdated}<br>
+      Wait: <span class="${waitClass}">${waitTime}</span> min${lastUpdated}<br>
       Reports: ${reportCount}
     `;
 

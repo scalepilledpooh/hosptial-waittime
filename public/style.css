@@ -43,3 +43,19 @@ body {
   color: #555;
   margin-top: 1rem;
 }
+
+.wait-short {
+  color: green;
+}
+
+.wait-medium {
+  color: orange;
+}
+
+.wait-long {
+  color: red;
+}
+
+.wait-unknown {
+  color: #555;
+}

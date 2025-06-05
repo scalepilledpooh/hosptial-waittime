@@ -5,7 +5,7 @@ A web application that helps users find hospitals in Abuja with the shortest eme
 ## Features
 
 - View hospital locations on an interactive map
-- See current wait times and bed availability
+- See current wait times and bed availability, color-coded by delay
 - Submit anonymous wait time reports
 - Filter hospitals by distance and current wait times
 

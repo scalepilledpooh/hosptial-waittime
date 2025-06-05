@@ -70,8 +70,16 @@ function renderHospitals(list: Hospital[]) {
 
   list.forEach((h) => {
     const popupContent = document.createElement('div');
+
+    const wait = h.aggregated_wait?.est_wait;
+    const waitClass =
+      wait == null ? 'wait-unknown'
+      : wait <= 15 ? 'wait-short'
+      : wait <= 30 ? 'wait-medium'
+      : 'wait-long';
+
     popupContent.innerHTML = `<strong>${h.name}</strong><br />` +
-      `Wait: ${h.aggregated_wait?.est_wait ?? 'n/a'} min` +
+      `Wait: <span class="${waitClass}">${wait ?? 'n/a'}</span> min` +
       (h.aggregated_wait?.last_updated ? ` (updated ${new Date(h.aggregated_wait.last_updated).toLocaleTimeString()})` : '') +
       `<br />Reports: ${h.aggregated_wait?.report_count ?? 0}`;
 
