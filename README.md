@@ -28,6 +28,8 @@ A web application that helps users find hospitals in Abuja with the shortest eme
    SUPABASE_URL=your_supabase_url
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
    ```
+   Copy `public/config.sample.js` to `public/config.js` and fill in your
+   `SUPABASE_URL` and `public` anon key so the front-end can connect.
 
 4. Set up the database:
    - Run the SQL in `scripts/setup_db.sql` in your Supabase SQL editor
@@ -38,9 +40,10 @@ A web application that helps users find hospitals in Abuja with the shortest eme
 
 ## Development
 
-Start the development server:
+Build the front-end and open `public/index.html` with any static server:
 ```bash
-npm run dev
+npm run build
+npx http-server public
 ```
 
 ## Project Structure

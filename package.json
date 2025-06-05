@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp dist/src/app.js public/app.js",
     "seed": "tsx scripts/seed_hospitals.ts",
     "import-osm": "tsx scripts/import_osm.ts"
   },

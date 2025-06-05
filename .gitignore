@@ -39,3 +39,4 @@ Thumbs.db
 # Local development
 .cache/
 coverage/
+public/config.js
