@@ -94,6 +94,24 @@ async function fetchHospitals(query = '') {
   }
 }
 
+// Fetch recent comments for a hospital
+async function fetchRecentComments(hospitalId, limit = 3) {
+  try {
+    const { data, error } = await supabase
+      .from('reports')
+      .select('comment, created_at')
+      .eq('hospital_id', hospitalId)
+      .not('comment', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching comments:', err);
+    return [];
+  }
+}
+
 function renderHospitals(hospitals) {
   // Clear existing markers
   markers.forEach(marker => marker.remove());
@@ -112,6 +130,10 @@ function renderHospitals(hospitals) {
       Wait: ${waitTime} min${lastUpdated}<br>
       Reports: ${reportCount}
     `;
+    const commentsEl = document.createElement('div');
+    commentsEl.className = 'recent-comments';
+    commentsEl.textContent = 'Loading comments...';
+    popupContent.appendChild(commentsEl);
 
     if (reportTemplate) {
       const clone = reportTemplate.content.cloneNode(true);
@@ -199,6 +221,16 @@ function renderHospitals(hospitals) {
 
     const popup = new mapboxgl.Popup({ offset: 25 })
       .setDOMContent(popupContent)
+      .on('open', async () => {
+        const comments = await fetchRecentComments(hospital.id);
+        if (comments.length === 0) {
+          commentsEl.textContent = 'No comments yet';
+        } else {
+          commentsEl.innerHTML = '<ul>' +
+            comments.map(c => `<li>${c.comment}</li>`).join('') +
+            '</ul>';
+        }
+      })
       .on('close', () => {
         currentPopup = null;
       });
