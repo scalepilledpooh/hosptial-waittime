@@ -37,6 +37,8 @@ A web application that helps users find hospitals in Abuja with the shortest eme
      ```bash
      npm run import-osm
      ```
+   The SQL script creates RLS policies so anyone can read data and submit new
+   reports, while only the service role can modify or delete existing reports.
 
 ## Development
 
@@ -147,9 +149,9 @@ created_at TIMESTAMPTZ DEFAULT now()
 -- reports table
 id  SERIAL PRIMARY KEY
 hospital_id INT REFERENCES hospitals(id)
-wait_minutes INT            -- nullable if turned-away flag used
-capacity_enum SMALLINT      -- 0 = full, 1 = limited, 2 = plenty
-comment TEXT
+wait_minutes INT CHECK (wait_minutes IS NULL OR (wait_minutes >= 0 AND wait_minutes <= 720))
+capacity_enum SMALLINT CHECK (capacity_enum BETWEEN 0 AND 2) -- 0 = full, 1 = limited, 2 = plenty
+comment TEXT CHECK (comment IS NULL OR CHAR_LENGTH(comment) <= 280)
 created_at TIMESTAMPTZ DEFAULT now()
 ip_hash TEXT                -- SHA-256(ip) for rate-limiting
 
@@ -159,6 +161,13 @@ aggregated_wait
   est_wait INT
   report_count INT
   updated_at TIMESTAMPTZ
+
+-- view for analytics
+daily_report_counts
+  hospital_id INT
+  report_date DATE
+  report_count INT
+  avg_wait INT
 
 
 ⸻
