@@ -161,6 +161,7 @@ aggregated_wait
   est_wait INT
   report_count INT
   updated_at TIMESTAMPTZ
+  -- refreshed every 15 min by an edge function
 
 -- view for analytics
 daily_report_counts
@@ -232,3 +233,10 @@ Footnotes
 4. Put hospital info in `scripts/hospitals.csv` (see example row).
 5. Execute `npm run seed` to upload hospitals to Supabase.
 6. Or run `npm run import-osm` to fetch hospital data from OpenStreetMap and upload it automatically.
+7. Deploy the refresh function to Supabase and schedule it every 15 minutes:
+   ```bash
+   supabase functions deploy refresh_aggregated_wait --no-verify-jwt
+   ```
+   In the Supabase dashboard, open **Edge Functions → Schedules** and set the
+   `refresh_aggregated_wait` function to run every 15 minutes. If you prefer,
+   any external cron service can hit the function URL on the same interval.

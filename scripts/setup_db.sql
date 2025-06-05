@@ -28,20 +28,34 @@ create table if not exists public.reports (
 create index if not exists idx_reports_hospital_id on public.reports(hospital_id);
 create index if not exists idx_reports_created_at on public.reports(created_at);
 
--- Create materialized view for aggregated wait times
-create or replace view public.aggregated_wait as
-select 
+create materialized view if not exists public.aggregated_wait as
+select
   hospital_id,
   round(avg(wait_minutes))::integer as est_wait,
   count(*) as report_count,
   max(created_at) as last_updated
-from 
+from
   public.reports
-where 
+where
   created_at > (now() - interval '4 hours')
   and wait_minutes is not null
 group by
-  hospital_id;
+  hospital_id
+with no data;
+
+create unique index if not exists aggregated_wait_hospital_id_idx
+  on public.aggregated_wait(hospital_id);
+
+refresh materialized view public.aggregated_wait;
+
+create or replace function public.refresh_aggregated_wait()
+returns void
+language plpgsql
+security definer as $$
+begin
+  refresh materialized view concurrently public.aggregated_wait;
+end;
+$$;
 
 -- Function and trigger to sanitize comments by stripping HTML tags
 create or replace function public.sanitize_comment()
