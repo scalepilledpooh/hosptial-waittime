@@ -1,0 +1,18 @@
+{
+  "name": "abj-waittime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "seed": "ts-node scripts/seed_hospitals.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.6",
+    "csv-parse": "^5.5.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0"
+  }
+}
