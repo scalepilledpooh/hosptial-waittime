@@ -4,6 +4,23 @@ const supabaseUrl = (window as any).SUPABASE_URL;
 const supabaseKey = (window as any).SUPABASE_ANON_KEY;
 const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey);
 
+declare const mapboxgl: any;
+mapboxgl.accessToken = (window as any).MAPBOX_TOKEN;
+
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/streets-v12',
+  center: [7.45, 9.07],
+  zoom: 12,
+});
+
+navigator.geolocation.getCurrentPosition(
+  (pos) => {
+    map.setCenter([pos.coords.longitude, pos.coords.latitude]);
+  },
+  () => {}
+);
+
 interface Hospital {
   id: string;
   name: string;
@@ -33,14 +50,16 @@ async function fetchHospitals(query = ''): Promise<Hospital[]> {
   return data as Hospital[];
 }
 
+let markers: any[] = [];
+
 function renderHospitals(list: Hospital[]) {
-  const container = document.getElementById('hospital-list') as HTMLUListElement;
-  container.innerHTML = '';
+  markers.forEach((m) => m.remove());
+  markers = [];
   const template = document.getElementById('report-template') as HTMLTemplateElement;
 
   list.forEach((h) => {
-    const li = document.createElement('li');
-    li.innerHTML = `<strong>${h.name}</strong><br />` +
+    const popupContent = document.createElement('div');
+    popupContent.innerHTML = `<strong>${h.name}</strong><br />` +
       `Wait: ${h.aggregated_wait?.est_wait ?? 'n/a'} min` +
       (h.aggregated_wait?.last_updated ? ` (updated ${new Date(h.aggregated_wait.last_updated).toLocaleTimeString()})` : '') +
       `<br />Reports: ${h.aggregated_wait?.report_count ?? 0}`;
@@ -69,8 +88,13 @@ function renderHospitals(list: Hospital[]) {
       }
     });
 
-    li.appendChild(clone);
-    container.appendChild(li);
+    popupContent.appendChild(clone);
+    const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
+    const marker = new mapboxgl.Marker()
+      .setLngLat([h.lon, h.lat])
+      .setPopup(popup)
+      .addTo(map);
+    markers.push(marker);
   });
 }
 

@@ -2,6 +2,16 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = window.SUPABASE_URL;
 const supabaseKey = window.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+mapboxgl.accessToken = window.MAPBOX_TOKEN;
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: [7.45, 9.07],
+    zoom: 12,
+});
+navigator.geolocation.getCurrentPosition((pos) => {
+    map.setCenter([pos.coords.longitude, pos.coords.latitude]);
+}, () => { });
 async function fetchHospitals(query = '') {
     const { data, error } = await supabase
         .from('hospitals')
@@ -14,13 +24,14 @@ async function fetchHospitals(query = '') {
     }
     return data;
 }
+let markers = [];
 function renderHospitals(list) {
-    const container = document.getElementById('hospital-list');
-    container.innerHTML = '';
+    markers.forEach((m) => m.remove());
+    markers = [];
     const template = document.getElementById('report-template');
     list.forEach((h) => {
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>${h.name}</strong><br />` +
+        const popupContent = document.createElement('div');
+        popupContent.innerHTML = `<strong>${h.name}</strong><br />` +
             `Wait: ${h.aggregated_wait?.est_wait ?? 'n/a'} min` +
             (h.aggregated_wait?.last_updated ? ` (updated ${new Date(h.aggregated_wait.last_updated).toLocaleTimeString()})` : '') +
             `<br />Reports: ${h.aggregated_wait?.report_count ?? 0}`;
@@ -46,8 +57,13 @@ function renderHospitals(list) {
                 form.reset();
             }
         });
-        li.appendChild(clone);
-        container.appendChild(li);
+        popupContent.appendChild(clone);
+        const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
+        const marker = new mapboxgl.Marker()
+            .setLngLat([h.lon, h.lat])
+            .setPopup(popup)
+            .addTo(map);
+        markers.push(marker);
     });
 }
 async function refresh(query = '') {
