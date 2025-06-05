@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "seed": "ts-node scripts/seed_hospitals.ts"
+    "seed": "ts-node scripts/seed_hospitals.ts",
+    "import-osm": "ts-node scripts/import_osm.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.6",
