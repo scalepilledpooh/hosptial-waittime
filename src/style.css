@@ -24,6 +24,15 @@
   font-style: italic;
 }
 
+.wait-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
 .recent-reports {
   margin: 12px 0;
   padding-top: 12px;

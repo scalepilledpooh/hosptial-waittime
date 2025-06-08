@@ -58,6 +58,16 @@ function getMarkerColor(waitTime) {
         return '#FF9800'; // orange for long wait
     return '#F44336'; // red for very long wait
 }
+// Simplified red/yellow/green scheme for popup indicator
+function getPopupColor(waitTime) {
+    if (waitTime === null)
+        return '#808080';
+    if (waitTime <= 30)
+        return '#4CAF50'; // green
+    if (waitTime <= 60)
+        return '#FFC107'; // yellow
+    return '#F44336'; // red
+}
 function getCapacityText(capacity) {
     if (capacity === null)
         return 'Unknown';
@@ -75,9 +85,11 @@ function renderHospitals(list) {
         // Header with hospital name and wait time
         const header = document.createElement('div');
         header.className = 'popup-header';
+        const indicatorColor = getPopupColor(waitTime);
         header.innerHTML = `
       <h3>${h.name}</h3>
       <div class="wait-time ${waitTime === null ? 'no-data' : ''}">
+        ${waitTime !== null ? `<span class="wait-indicator" style="background:${indicatorColor}"></span>` : ''}
         ${waitTime === null ? 'No wait time data' : `${waitTime} min wait`}
         ${h.aggregated_wait?.last_updated ?
             `<br><small>Updated ${new Date(h.aggregated_wait.last_updated).toLocaleTimeString()}</small>` : ''}
