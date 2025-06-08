@@ -32,7 +32,9 @@ async function fetchHospitals(query = '') {
         )
       `)
             .ilike('name', `%${query}%`)
-            .order('name');
+            .order('name')
+            .order('created_at', { foreignTable: 'reports', ascending: false })
+            .limit(5, { foreignTable: 'reports' });
         if (error)
             throw error;
         return data;
@@ -90,7 +92,7 @@ function renderHospitals(list) {
       <h3>${h.name}</h3>
       <div class="wait-time ${waitTime === null ? 'no-data' : ''}">
         ${waitTime !== null ? `<span class="wait-indicator" style="background:${indicatorColor}"></span>` : ''}
-        ${waitTime === null ? 'No wait time data' : `${waitTime} min wait`}
+        ${waitTime === null ? 'No wait time data' : `Average wait: ${waitTime} min`}
         ${h.aggregated_wait?.last_updated ?
             `<br><small>Updated ${new Date(h.aggregated_wait.last_updated).toLocaleTimeString()}</small>` : ''}
       </div>
@@ -102,7 +104,7 @@ function renderHospitals(list) {
             reportsSection.className = 'recent-reports';
             reportsSection.innerHTML = '<h4>Recent Reports</h4>';
             const reportsList = document.createElement('ul');
-            h.recent_reports.slice(0, 3).forEach(report => {
+            h.recent_reports.slice(0, 5).forEach(report => {
                 const li = document.createElement('li');
                 li.innerHTML = `
           <div class="report-time">${new Date(report.created_at).toLocaleTimeString()}</div>
