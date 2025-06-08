@@ -1,60 +1,117 @@
-body {
-  font-family: sans-serif;
-  margin: 1rem;
+.hospital-popup {
+  padding: 12px;
+  max-width: 300px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
-#hospital-list li {
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  padding: 0.5rem;
+.popup-header {
+  margin-bottom: 12px;
 }
 
-#map {
-  width: 100%;
-  height: 60vh;
-  margin-top: 1rem;
-}
-
-@media (min-width: 600px) {
-  #map {
-    height: 500px;
-  }
-}
-
-#loading {
-  margin-top: 0.5rem;
-}
-
-.hidden {
-  display: none;
-}
-
-.error {
-  color: #c00;
-  margin-top: 0.5rem;
-}
-
-.report-form {
-  margin-top: 0.5rem;
-}
-
-.disclaimer {
-  font-size: 0.9rem;
-  color: #555;
-  margin-top: 1rem;
-}
-
-.recent-comments {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+.popup-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
   color: #333;
 }
 
-.recent-comments ul {
-  padding-left: 1rem;
+.wait-time {
+  font-size: 14px;
+  color: #666;
+}
+
+.wait-time.no-data {
+  color: #999;
+  font-style: italic;
+}
+
+.wait-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.recent-reports {
+  margin: 12px 0;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+.recent-reports h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.recent-reports ul {
+  list-style: none;
+  padding: 0;
   margin: 0;
 }
 
-.recent-comments li {
-  margin-bottom: 0.25rem;
+.recent-reports li {
+  margin-bottom: 8px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
 }
+
+.report-time {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.report-details {
+  font-size: 13px;
+  color: #333;
+}
+
+.report-details em {
+  color: #666;
+  font-style: italic;
+}
+
+/* Form styles */
+form {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+form input,
+form select,
+form textarea {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+form button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+form button:hover {
+  background: #0056b3;
+}
+
+/* Marker styles */
+.marker {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.marker:hover {
+  transform: scale(1.1);
+} 

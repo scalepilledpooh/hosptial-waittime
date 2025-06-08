@@ -1,3 +1,3 @@
-window.SUPABASE_URL = 'https://lldwcmfutvpmwyvvexdq.supabase.co';
-window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsZHdjbWZ1dHZwbXd5dnZleGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxNTYzNzAsImV4cCI6MjA2NDczMjM3MH0.FIlvHB4lqpMz47EQot4Tbwe9vtnPl9MJjHgmYm0RA_o';
+window.SUPABASE_URL = 'https://example.com';
+window.SUPABASE_ANON_KEY = 'anonkey';
 window.MAPBOX_TOKEN = 'pk.eyJ1Ijoicnlhbi1zaGFyayIsImEiOiJjbWJqeTlrbTIwa3M4MmlzZDh2angyb3o0In0.SmMHpdCg773r-ChA3xZYXA';
