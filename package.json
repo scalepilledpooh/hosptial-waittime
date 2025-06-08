@@ -5,7 +5,7 @@
   "scripts": {
     "prebuild": "node scripts/generate_config.js",
     "predev": "node scripts/generate_config.js",
-    "build": "node scripts/load-env.js && tsc && cp src/index.html public/ && cp src/style.css public/ && cp -r src/assets public/",
+    "build": "node scripts/load-env.js && tsc && cp src/style.css public/",
     "dev": "node scripts/load-env.js && tsc --watch & live-server public --port=3000",
     "seed": "tsx scripts/seed_hospitals.ts",
     "import-osm": "tsx scripts/import_osm.ts"
