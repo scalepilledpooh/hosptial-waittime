@@ -1,7 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Hospital, Report } from './types';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+// Mapbox GL is loaded via a CDN script in index.html
+// Declare the global variable for TypeScript to avoid compile errors
+declare const mapboxgl: any;
 
 // Initialize Supabase
 const supabase = window.supabase.createClient(

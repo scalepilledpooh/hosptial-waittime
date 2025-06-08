@@ -1,5 +1,3 @@
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 // Initialize Supabase
 const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 // Initialize Mapbox
@@ -184,3 +182,4 @@ supabase
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, () => refresh(searchInput.value))
     .subscribe();
 refresh();
+export {};
