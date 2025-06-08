@@ -21,14 +21,7 @@
 </head>
 <body>
   <h1>Abuja Hospital Wait Times</h1>
-
-  <section id="auth-section">
-    <form id="login-form">
-      <input type="email" id="login-email" placeholder="Email" required />
-      <button type="submit">Send Magic Link</button>
-    </form>
-    <div id="auth-status"></div>
-  </section>
+  <p class="intro">Find the shortest wait times at hospitals near you. Help others by reporting your wait time.</p>
 
   <input type="text" id="search" placeholder="Search hospitals" title="Start typing a hospital name" />
   <div id="loading" class="hidden">Loading hospitals...</div>
@@ -39,14 +32,15 @@
     <form class="report-form">
       <input type="number" name="wait" min="0" placeholder="Wait minutes" title="Time you waited before being seen" />
       <select name="capacity" title="How crowded was the emergency room?" required>
-        <option value="2">Plenty</option>
-        <option value="1">Limited</option>
-        <option value="0">Full</option>
+        <option value="2">Plenty of beds available</option>
+        <option value="1">Limited beds available</option>
+        <option value="0">Full - no beds available</option>
       </select>
       <input type="text" name="comment" placeholder="Optional comment" title="Add any extra notes (max 280 characters)" />
-      <button type="submit">Submit</button>
+      <button type="submit">Submit Wait Time</button>
     </form>
   </template>
+
   <p class="disclaimer">Wait times are community-reported and may be inaccurate. In an emergency, call the hospital or emergency services. <a href="about.html">Learn more</a>.</p>
 
   <script type="module" src="app.js"></script>

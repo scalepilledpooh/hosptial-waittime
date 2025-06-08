@@ -1,61 +1,80 @@
 -- Enable UUID extension if not already enabled
 create extension if not exists "uuid-ossp";
 
--- Create hospitals table
+-- Enable RLS
+alter table public.hospitals enable row level security;
+alter table public.reports enable row level security;
+
+-- Create hospitals table if it doesn't exist
 create table if not exists public.hospitals (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid default gen_random_uuid() primary key,
   name text not null,
-  lat double precision not null,
-  lon double precision not null,
+  lat decimal not null,
+  lon decimal not null,
   address text,
   phone text,
   website text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  created_at timestamptz default now()
 );
 
--- Create reports table
+-- Create reports table if it doesn't exist
 create table if not exists public.reports (
-  id uuid primary key default uuid_generate_v4(),
-  hospital_id uuid references public.hospitals(id) on delete cascade,
+  id uuid default gen_random_uuid() primary key,
+  hospital_id uuid references public.hospitals(id) not null,
   wait_minutes integer check (wait_minutes is null or (wait_minutes >= 0 and wait_minutes <= 720)),
-  capacity_enum smallint check (capacity_enum between 0 and 2), -- 0=full, 1=limited, 2=plenty
+  capacity_enum smallint check (capacity_enum between 0 and 2), -- 0 = full, 1 = limited, 2 = plenty
   comment text check (comment is null or char_length(comment) <= 280),
-  ip_hash text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  created_at timestamptz default now(),
+  ip_hash text -- SHA-256(ip) for rate-limiting
 );
 
--- Create index for faster lookups
-create index if not exists idx_reports_hospital_id on public.reports(hospital_id);
-create index if not exists idx_reports_created_at on public.reports(created_at);
-
+-- Create materialized view for aggregated wait times
 create materialized view if not exists public.aggregated_wait as
-select
+select 
   hospital_id,
-  round(avg(wait_minutes))::integer as est_wait,
+  round(avg(wait_minutes)) as est_wait,
   count(*) as report_count,
   max(created_at) as last_updated
-from
-  public.reports
-where
-  created_at > (now() - interval '4 hours')
-  and wait_minutes is not null
-group by
-  hospital_id
-with no data;
+from public.reports
+where created_at > now() - interval '4 hours'
+group by hospital_id;
 
-create unique index if not exists aggregated_wait_hospital_id_idx
-  on public.aggregated_wait(hospital_id);
+-- Create index on reports for faster aggregation
+create index if not exists reports_created_at_idx on public.reports(created_at);
+create index if not exists reports_hospital_id_idx on public.reports(hospital_id);
 
-refresh materialized view public.aggregated_wait;
+-- RLS Policies
+-- Anyone can read hospitals
+create policy "Anyone can read hospitals"
+  on public.hospitals for select
+  using (true);
 
+-- Anyone can read reports
+create policy "Anyone can read reports"
+  on public.reports for select
+  using (true);
+
+-- Anyone can insert reports
+create policy "Anyone can insert reports"
+  on public.reports for insert
+  with check (true);
+
+-- Only service role can update/delete reports
+create policy "Only service role can update reports"
+  on public.reports for update
+  using (auth.role() = 'service_role');
+
+create policy "Only service role can delete reports"
+  on public.reports for delete
+  using (auth.role() = 'service_role');
+
+-- Function to refresh aggregated wait times
 create or replace function public.refresh_aggregated_wait()
-returns void
-language plpgsql
-security definer as $$
+returns void as $$
 begin
   refresh materialized view concurrently public.aggregated_wait;
 end;
-$$;
+$$ language plpgsql;
 
 -- Function and trigger to sanitize comments by stripping HTML tags
 create or replace function public.sanitize_comment()
@@ -81,37 +100,6 @@ select
 from
   public.reports
 group by hospital_id, report_date;
-
--- Enable Row Level Security
-alter table public.hospitals enable row level security;
-alter table public.reports enable row level security;
-
--- Set up policies for public read access
-create policy "Public hospitals are viewable by everyone." 
-on public.hospitals for select 
-using (true);
-
-create policy "Public reports are viewable by everyone." 
-on public.reports for select 
-using (true);
-
--- Allow anonymous report submissions
-create policy "Enable insert for anonymous users"
-on public.reports for insert
-to anon, authenticated
-with check (true);
-
--- Restrict update and delete to service_role
-create policy "Allow service role to update reports"
-on public.reports for update
-to service_role
-using (true)
-with check (true);
-
-create policy "Allow service role to delete reports"
-on public.reports for delete
-to service_role
-using (true);
 
 -- Create a function to get nearby hospitals
 create or replace function public.nearby_hospitals(

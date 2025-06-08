@@ -1,4 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Hospital, Report } from './types';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 // Initialize Supabase
 const supabase = window.supabase.createClient(
@@ -22,21 +25,6 @@ navigator.geolocation.getCurrentPosition(
   () => {}
 );
 
-interface Hospital {
-  id: string;
-  name: string;
-  lat: number;
-  lon: number;
-  address: string | null;
-  phone: string | null;
-  website: string | null;
-  aggregated_wait?: {
-    est_wait: number | null;
-    report_count: number | null;
-    last_updated: string | null;
-  } | null;
-}
-
 const loadingEl = document.getElementById('loading') as HTMLElement;
 const errorEl = document.getElementById('error-message') as HTMLElement;
 
@@ -46,7 +34,16 @@ async function fetchHospitals(query = ''): Promise<Hospital[]> {
   try {
     const { data, error } = await supabase
       .from('hospitals')
-      .select(`*, aggregated_wait(est_wait, report_count, last_updated)`) // left join view
+      .select(`
+        *,
+        aggregated_wait(est_wait, report_count, last_updated),
+        recent_reports:reports(
+          wait_minutes,
+          capacity_enum,
+          comment,
+          created_at
+        )
+      `)
       .ilike('name', `%${query}%`)
       .order('name');
 
@@ -63,21 +60,70 @@ async function fetchHospitals(query = ''): Promise<Hospital[]> {
 
 let markers: any[] = [];
 
+function getMarkerColor(waitTime: number | null): string {
+  if (waitTime === null) return '#808080'; // gray for no data
+  if (waitTime <= 30) return '#4CAF50';   // green for short wait
+  if (waitTime <= 60) return '#FFC107';   // yellow for medium wait
+  if (waitTime <= 120) return '#FF9800';  // orange for long wait
+  return '#F44336';                       // red for very long wait
+}
+
+function getCapacityText(capacity: number | null): string {
+  if (capacity === null) return 'Unknown';
+  return ['Full - no beds available', 'Limited beds available', 'Plenty of beds available'][capacity] || 'Unknown';
+}
+
 function renderHospitals(list: Hospital[]) {
   markers.forEach((m) => m.remove());
   markers = [];
   const template = document.getElementById('report-template') as HTMLTemplateElement;
 
   list.forEach((h) => {
+    const waitTime = h.aggregated_wait?.est_wait ?? null;
+    const markerColor = getMarkerColor(waitTime);
+    
     const popupContent = document.createElement('div');
-    popupContent.innerHTML = `<strong>${h.name}</strong><br />` +
-      `Wait: ${h.aggregated_wait?.est_wait ?? 'n/a'} min` +
-      (h.aggregated_wait?.last_updated ? ` (updated ${new Date(h.aggregated_wait.last_updated).toLocaleTimeString()})` : '') +
-      `<br />Reports: ${h.aggregated_wait?.report_count ?? 0}`;
+    popupContent.className = 'hospital-popup';
+    
+    // Header with hospital name and wait time
+    const header = document.createElement('div');
+    header.className = 'popup-header';
+    header.innerHTML = `
+      <h3>${h.name}</h3>
+      <div class="wait-time ${waitTime === null ? 'no-data' : ''}">
+        ${waitTime === null ? 'No wait time data' : `${waitTime} min wait`}
+        ${h.aggregated_wait?.last_updated ? 
+          `<br><small>Updated ${new Date(h.aggregated_wait.last_updated).toLocaleTimeString()}</small>` : ''}
+      </div>
+    `;
+    popupContent.appendChild(header);
 
+    // Recent reports section
+    if (h.recent_reports && h.recent_reports.length > 0) {
+      const reportsSection = document.createElement('div');
+      reportsSection.className = 'recent-reports';
+      reportsSection.innerHTML = '<h4>Recent Reports</h4>';
+      
+      const reportsList = document.createElement('ul');
+      h.recent_reports.slice(0, 3).forEach(report => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div class="report-time">${new Date(report.created_at).toLocaleTimeString()}</div>
+          <div class="report-details">
+            ${report.wait_minutes ? `${report.wait_minutes} min wait` : ''}
+            ${report.capacity_enum !== null ? ` • ${getCapacityText(report.capacity_enum)}` : ''}
+            ${report.comment ? `<br><em>${report.comment}</em>` : ''}
+          </div>
+        `;
+        reportsList.appendChild(li);
+      });
+      reportsSection.appendChild(reportsList);
+      popupContent.appendChild(reportsSection);
+    }
+
+    // Report form
     const clone = template.content.cloneNode(true) as HTMLElement;
     const form = clone.querySelector('form') as HTMLFormElement;
-
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
@@ -105,12 +151,24 @@ function renderHospitals(list: Hospital[]) {
         console.error(error.message);
       } else {
         form.reset();
+        alert('Thank you for your report!');
       }
     });
 
     popupContent.appendChild(clone);
     const popup = new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent);
-    const marker = new mapboxgl.Marker()
+    
+    // Create custom marker with color
+    const el = document.createElement('div');
+    el.className = 'marker';
+    el.style.backgroundColor = markerColor;
+    el.style.width = '20px';
+    el.style.height = '20px';
+    el.style.borderRadius = '50%';
+    el.style.border = '2px solid white';
+    el.style.boxShadow = '0 0 4px rgba(0,0,0,0.3)';
+    
+    const marker = new mapboxgl.Marker(el)
       .setLngLat([h.lon, h.lat])
       .setPopup(popup)
       .addTo(map);
@@ -122,32 +180,6 @@ async function refresh(query = '') {
   const hospitals = await fetchHospitals(query);
   renderHospitals(hospitals);
 }
-
-// Auth
-const loginForm = document.getElementById('login-form') as HTMLFormElement;
-const authStatus = document.getElementById('auth-status') as HTMLElement;
-
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = (document.getElementById('login-email') as HTMLInputElement).value;
-  const { error } = await supabase.auth.signInWithOtp({ email });
-  if (error) {
-    authStatus.textContent = 'Error sending magic link';
-    console.error(error.message);
-  } else {
-    authStatus.textContent = 'Check your email for the login link';
-  }
-});
-
-supabase.auth.onAuthStateChange((_event, session) => {
-  if (session) {
-    authStatus.textContent = `Signed in as ${session.user.email}`;
-    loginForm.style.display = 'none';
-  } else {
-    authStatus.textContent = '';
-    loginForm.style.display = 'block';
-  }
-});
 
 // Search functionality
 const searchInput = document.getElementById('search') as HTMLInputElement;

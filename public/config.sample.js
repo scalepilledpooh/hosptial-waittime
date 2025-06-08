@@ -1,5 +1,5 @@
-// Copy this file to config.js and fill in your Supabase credentials
-window.SUPABASE_URL = 'https://your-project.supabase.co';
-window.SUPABASE_ANON_KEY = 'public-anon-key';
+// Copy this file to config.js and fill in your values
+window.SUPABASE_URL = 'your_supabase_url';
+window.SUPABASE_ANON_KEY = 'your_supabase_anon_key';
 // Mapbox access token
-window.MAPBOX_TOKEN = 'your-mapbox-token';
+window.MAPBOX_TOKEN = 'your_mapbox_token';

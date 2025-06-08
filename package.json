@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsc && cp src/index.html public/ && cp src/style.css public/ && cp -r src/assets public/",
-    "dev": "tsc --watch & live-server public --port=3000",
+    "prebuild": "node scripts/generate_config.js",
+    "predev": "node scripts/generate_config.js",
+    "build": "node scripts/load-env.js && tsc && cp src/index.html public/ && cp src/style.css public/ && cp -r src/assets public/",
+    "dev": "node scripts/load-env.js && tsc --watch & live-server public --port=3000",
     "seed": "tsx scripts/seed_hospitals.ts",
     "import-osm": "tsx scripts/import_osm.ts"
   },
@@ -12,7 +14,6 @@
     "@supabase/supabase-js": "^2.39.6",
     "@types/mapbox-gl": "^3.4.1",
     "csv-parse": "^5.5.0",
-    "dotenv": "^16.5.0",
     "mapbox-gl": "^3.12.0",
     "node-fetch": "^3.3.2"
   },
@@ -20,6 +21,8 @@
     "@types/dotenv": "^6.1.1",
     "@types/node": "^22.15.30",
     "@types/node-fetch": "^2.6.12",
+    "dotenv": "^16.5.0",
+    "live-server": "^1.2.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.4",
     "typescript": "^5.4.0"
