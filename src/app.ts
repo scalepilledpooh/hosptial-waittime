@@ -28,6 +28,7 @@ navigator.geolocation.getCurrentPosition(
 
 const loadingEl = document.getElementById('loading') as HTMLElement;
 const errorEl = document.getElementById('error-message') as HTMLElement;
+const hospitalListEl = document.getElementById('hospital-list') as HTMLElement;
 
 async function fetchHospitals(query = ''): Promise<Hospital[]> {
   loadingEl.classList.remove('hidden');
@@ -61,7 +62,7 @@ async function fetchHospitals(query = ''): Promise<Hospital[]> {
   }
 }
 
-let markers: any[] = [];
+let markers: Map<string, any> = new Map();
 
 function getMarkerColor(waitTime: number | null): string {
   if (waitTime === null) return '#808080'; // gray for no data
@@ -85,8 +86,9 @@ function getCapacityText(capacity: number | null): string {
 }
 
 function renderHospitals(list: Hospital[]) {
-  markers.forEach((m) => m.remove());
-  markers = [];
+  for (const m of markers.values()) m.remove();
+  markers.clear();
+  hospitalListEl.innerHTML = '';
   const template = document.getElementById('report-template') as HTMLTemplateElement;
 
   list.forEach((h) => {
@@ -185,7 +187,15 @@ function renderHospitals(list: Hospital[]) {
       .setLngLat([h.lon, h.lat])
       .setPopup(popup)
       .addTo(map);
-    markers.push(marker);
+    markers.set(h.id, marker);
+
+    const li = document.createElement('li');
+    li.textContent = h.name;
+    li.addEventListener('click', () => {
+      map.flyTo({ center: [h.lon, h.lat], zoom: 14 });
+      marker.togglePopup();
+    });
+    hospitalListEl.appendChild(li);
   });
 }
 

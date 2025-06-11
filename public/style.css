@@ -114,4 +114,21 @@ form button:hover {
 
 .marker:hover {
   transform: scale(1.1);
-} 
+}
+
+/* Hospital list styles */
+.hospital-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 12px;
+}
+
+.hospital-list li {
+  cursor: pointer;
+  padding: 4px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.hospital-list li:hover {
+  text-decoration: underline;
+}
