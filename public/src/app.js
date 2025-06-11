@@ -13,6 +13,7 @@ navigator.geolocation.getCurrentPosition((pos) => {
 }, () => { });
 const loadingEl = document.getElementById('loading');
 const errorEl = document.getElementById('error-message');
+const hospitalListEl = document.getElementById('hospital-list');
 async function fetchHospitals(query = '') {
     loadingEl.classList.remove('hidden');
     errorEl.textContent = '';
@@ -46,7 +47,7 @@ async function fetchHospitals(query = '') {
         loadingEl.classList.add('hidden');
     }
 }
-let markers = [];
+let markers = new Map();
 function getMarkerColor(waitTime) {
     if (waitTime === null)
         return '#808080'; // gray for no data
@@ -74,8 +75,10 @@ function getCapacityText(capacity) {
     return ['Full - no beds available', 'Limited beds available', 'Plenty of beds available'][capacity] || 'Unknown';
 }
 function renderHospitals(list) {
-    markers.forEach((m) => m.remove());
-    markers = [];
+    for (const m of markers.values())
+        m.remove();
+    markers.clear();
+    hospitalListEl.innerHTML = '';
     const template = document.getElementById('report-template');
     list.forEach((h) => {
         const waitTime = h.aggregated_wait?.est_wait ?? null;
@@ -164,7 +167,14 @@ function renderHospitals(list) {
             .setLngLat([h.lon, h.lat])
             .setPopup(popup)
             .addTo(map);
-        markers.push(marker);
+        markers.set(h.id, marker);
+        const li = document.createElement('li');
+        li.textContent = h.name;
+        li.addEventListener('click', () => {
+            map.flyTo({ center: [h.lon, h.lat], zoom: 14 });
+            marker.togglePopup();
+        });
+        hospitalListEl.appendChild(li);
     });
 }
 async function refresh(query = '') {
