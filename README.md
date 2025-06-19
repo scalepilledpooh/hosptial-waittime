@@ -1,242 +1,185 @@
-# Abuja Hospital Wait Time Tracker
+# Abuja Hospital Wait Times
 
-A web application that helps users find hospitals in Abuja with the shortest emergency room wait times.
+A community-driven web application that helps users find hospitals in Abuja with the shortest emergency room wait times.
 
-## Features
+## 🚀 Features
 
-- View hospital locations on an interactive map
-- See current wait times and bed availability
-- Submit anonymous wait time reports
-- Filter hospitals by distance and current wait times
+- **Interactive Map**: View hospital locations with color-coded wait time indicators
+- **Real-time Data**: Community-reported wait times updated in real-time
+- **Search & Filter**: Find hospitals by name or location
+- **Anonymous Reporting**: Submit wait times and capacity reports without registration
+- **Mobile-Friendly**: Responsive design optimized for mobile devices
+- **PWA Ready**: Can be installed as a Progressive Web App
 
-## Setup
+## 🏥 How It Works
 
-1. Clone the repository:
+1. **View**: See hospitals on an interactive map with current wait time estimates
+2. **Report**: Submit anonymous reports about wait times and bed availability
+3. **Decide**: Choose the best hospital based on community data
+
+## 🛠️ Setup & Installation
+
+### Prerequisites
+
+- Node.js 18 or later
+- A Supabase account
+- A Mapbox account (optional, uses included token by default)
+
+### Quick Start
+
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/hosptial-waittime.git
-   cd hosptial-waitime
+   git clone <your-repo-url>
+   cd abj-waittime
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. Set up environment variables:
-   Create a `.env` file in the root directory with your Supabase credentials:
-   ```
-   SUPABASE_URL=your_supabase_url
-   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-   ```
-   Copy `public/config.sample.js` to `public/config.js` and fill in your
-   `SUPABASE_URL` and `public` anon key so the front-end can connect.
-
-4. Set up the database:
-   - Run the SQL in `scripts/setup_db.sql` in your Supabase SQL editor
-   - Import initial hospital data:
-     ```bash
-     npm run import-osm
-     ```
-   The SQL script creates RLS policies so anyone can read data and submit new
-   reports, while only the service role can modify or delete existing reports.
-
-## Development
-
-Build the front-end and open `public/index.html` with any static server:
-```bash
-npm run build
-npx http-server public
-```
-
-## Project Structure
-
-- `/scripts/` - Database setup and data import scripts
-- `/public/` - Static files
-- `/src/` - Application source code (to be implemented)
-
-## License
-
-MIT
-
----
-
-# Abuja ER Wait-Time Map – Product Requirements Document (MVP)
-
-## 1. Problem & Goal
-Residents and visitors in Abuja often waste **30 – 180 min** driving to an Emergency Department (ED) that is already full.  
-Hospitals publish no real-time capacity data.
-
-**Goal:** Ship a public, mobile-friendly website (or PWA) that lets anyone
-
-1. **See** current / last-reported wait times or bed availability for each major ED in Abuja.  
-2. **Contribute** a quick, anonymous report (minutes waited, “beds full / some / plenty”, optional comment).  
-3. **Decide quickly** which hospital to head to by glancing at a map overlay.
-
-Success = People routinely check the site before leaving home *and* self-report afterward, smoothing demand and reducing wasted travel.
-
----
-
-## 2. Target Users
-
-| Persona          | Core Need                                      | Mobile-first |
-|------------------|------------------------------------------------|--------------|
-| **Stressed Parent** | Find the fastest ED in \< 60 s                | ✅           |
-| **Good Samaritan**  | Post a quick update after a visit            | ✅           |
-| **Hospital Admin**  | Monitor crowding & reputational data (v2)    | ✅ / ❌      |
-
----
-
-## 3. Key User Stories (MVP)
-
-1. **As a patient** I open the site, allow geolocation, and see pins coloured by “current” wait tier.  
-2. I tap a pin and view: name, address, phone, link to Google Maps, last-reported wait, # reports today, and a **“Report Wait Time”** button.  
-3. **As a contributor** I hit that button, enter minutes waited (or “was turned away”), choose capacity tier, add an optional note, and submit — no login required.  
-4. My report is instantly visible; the aggregate wait estimate updates in real time.
-
----
-
-## 4. Scope
-
-| Feature | **Must** | **Should** | **Won’t (Now)** |
-|---------|:--------:|:----------:|:---------------:|
-| Base map of Abuja + pins for ~30 hospitals | ✅ | | |
-| Crowd report form (minutes, beds, comment) | ✅ | “photo of queue” upload (v2) | |
-| Last-report timestamp & simple average | ✅ | Time-decay model | |
-| Basic spam guard (hCaptcha) | ✅ | SMS / phone auth | |
-| Hospital directory (address, phone, website) | ✅ | | |
-| Fast PWA shell (installable) | ✅ | Offline cache | |
-| Admin dashboard to flag spam | | ✅ | |
-| Native push alerts (“ED near you \< 20 min”) | | | ❌ |
-
-**Algorithm v1**: arithmetic mean of all reports in the last 4 h.  
-**Algorithm v2** (future): time-decay weight `e^(-Δt/τ)` with τ ≈ 2 h plus user-reputation weighting.
-
----
-
-## 5. Non-Functional Requirements
-
-* **Load time:** \< 2 s on 3G (median Abuja ~8 Mbps).  
-* **Hosting cost:** \< $25 / month at 10 k daily hits.  
-* **Privacy:** store only coarse lat/long (3 decimal places); no PII unless user opts in to SMS verification.  
-* **Legal:** prominent disclaimer – “Information is crowdsourced and may be inaccurate; call 112 for life-threatening emergencies.”
-
----
-
-## 6. Metrics & KPIs
-
-| Metric                       | 90-Day Target | Why it matters |
-|------------------------------|---------------|----------------|
-| Monthly Active Users (MAU)   | ≥ 2 000       | Adoption       |
-| Median Time-to-First-Paint   | \< 1.5 s      | Retention      |
-| Crowd Reports per Day        | ≥ 50          | Data freshness |
-| Median Report Age on Map     | \< 90 min     | Decision utility |
-
----
-
-## 7. Data Model (Postgres / Supabase)
-
-```sql
--- hospitals table
-id  SERIAL PRIMARY KEY
-name TEXT
-lat  DECIMAL
-lon  DECIMAL
-address TEXT
-phone TEXT
-website TEXT
-created_at TIMESTAMPTZ DEFAULT now()
-
--- reports table
-id  SERIAL PRIMARY KEY
-hospital_id INT REFERENCES hospitals(id)
-wait_minutes INT CHECK (wait_minutes IS NULL OR (wait_minutes >= 0 AND wait_minutes <= 720))
-capacity_enum SMALLINT CHECK (capacity_enum BETWEEN 0 AND 2) -- 0 = full, 1 = limited, 2 = plenty
-comment TEXT CHECK (comment IS NULL OR CHAR_LENGTH(comment) <= 280)
-created_at TIMESTAMPTZ DEFAULT now()
-ip_hash TEXT                -- SHA-256(ip) for rate-limiting
-
--- materialised view (or table updated by cron)
-aggregated_wait
-  hospital_id INT PRIMARY KEY
-  est_wait INT
-  report_count INT
-  updated_at TIMESTAMPTZ
-  -- refreshed every 15 min by an edge function
-
--- view for analytics
-daily_report_counts
-  hospital_id INT
-  report_date DATE
-  report_count INT
-  avg_wait INT
-
-
-⸻
-
-8. Suggested Tech Stack
-
-Layer	“Code-light” Option	“DIY” Option
-Front-end	Next.js + TypeScript + Mapbox GL	React Native Web + Expo
-Back-end/API	Supabase (Postgres, Auth, edge functions)	Node.js (Express) + PostgreSQL
-Map Tiles	Mapbox Streets (free < 50 k tiles/mo)	Leaflet + OpenStreetMap
-Hosting	Supabase (DB) + Vercel (front-end)	Fly.io or AWS Lightsail
-Analytics	Plausible (EU-hosted)	PostHog
-
-Estimated probability this stack ships MVP in < 4 weeks with one junior developer: ~70 %.
-
-⸻
-
-9. Build Roadmap
-
-Sprint	Length	Deliverable
-0 – Kick-off	2 d	Compile master list of Abuja hospitals (Google Places → CSV → DB).
-1 – API & DB	1 wk	Supabase project; REST endpoints /hospitals & /reports.
-2 – Map UI	1 wk	Next.js page with Mapbox markers & pop-ups.
-3 – Submit Flow	1 wk	Report modal, hCaptcha, optimistic cache update.
-4 – Aggregation	0.5 wk	Edge-function cron job recalculates aggregated_wait every 15 min.
-5 – Polish & Launch	0.5 wk	PWA manifest, shareable URL, minimal SEO.
-
-Total: ~4 calendar weeks.
-Add +50 % buffer if brand-new to JS.
-
-⸻
-
-10. Open Questions / Risks
-	1.	Data accuracy / trolling — Plan: IP-hash rate-limit, flag outliers >\ 4σ, lightweight moderation queue.
-	2.	Liability — Mitigate via strong disclaimers, show report age prominently.
-	3.	Hospital buy-in — Might object; consider outreach once traction proven.
-	4.	Mapping costs — Monitor Mapbox tile usage; fall back to OSM if needed.
-	5.	Offline gaps — Future SMS bot could handle low-data users.
-
-⸻
-
-11. Next Actions for You
-	1.	Choose stack (Supabase vs classic Express).
-	2.	Reserve domain (e.g., abujarooms.ng).
-	3.	Create repo (GitHub private) and enable Supabase CI.
-	4.	Write hospital seed script (/scripts/seed_hospitals.ts).
-	5.	Sketch simple wireframes (Figma or PowerPoint).
-	6.	Ping for help when you hit coding roadblocks.
-
-⸻
-
-Footnotes
-	•	Several Nigerian studies report tertiary-hospital outpatient waits of 60 – 160 min; ample head-room for improvement.
-        •       FCT Ministry of Health PDF lists > 300 facilities; filter to ≈ 30 with 24 h ED service for launch.
-
-
-## Local Setup
-
-1. Install [Node.js](https://nodejs.org/) 18 or later.
-2. Run `npm install` to fetch dependencies.
-3. Create a `.env` file with your `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
-4. Put hospital info in `scripts/hospitals.csv` (see example row).
-5. Execute `npm run seed` to upload hospitals to Supabase.
-6. Or run `npm run import-osm` to fetch hospital data from OpenStreetMap and upload it automatically.
-7. Deploy the refresh function to Supabase and schedule it every 15 minutes:
+3. **Set up environment variables**
    ```bash
-   supabase functions deploy refresh_aggregated_wait --no-verify-jwt
+   cp .env.example .env
    ```
-   In the Supabase dashboard, open **Edge Functions → Schedules** and set the
-   `refresh_aggregated_wait` function to run every 15 minutes. If you prefer,
-   any external cron service can hit the function URL on the same interval.
+   
+   Edit `.env` and add your Supabase credentials:
+   ```
+   SUPABASE_URL=your_supabase_project_url
+   SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   MAPBOX_TOKEN=your_mapbox_token (optional)
+   ```
+
+4. **Run setup**
+   ```bash
+   npm run setup
+   ```
+
+5. **Set up the database**
+   - Go to your Supabase project dashboard
+   - Open the SQL Editor
+   - Run the SQL script from `supabase/migrations/create_hospital_schema.sql`
+
+6. **Import hospital data**
+   ```bash
+   npm run import-osm
+   ```
+
+7. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+The app will be available at `http://localhost:3000`
+
+## 📊 Database Schema
+
+The app uses three main tables:
+
+- **hospitals**: Store hospital information (name, location, contact details)
+- **reports**: Store user-submitted wait time reports
+- **aggregated_wait**: Materialized view with calculated average wait times
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `SUPABASE_URL` | Your Supabase project URL | Yes |
+| `SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key | Yes |
+| `MAPBOX_TOKEN` | Mapbox access token for maps | No* |
+
+*A default Mapbox token is included for development
+
+### Supabase Setup
+
+1. Create a new Supabase project
+2. Run the migration script to set up tables and policies
+3. Enable Row Level Security (RLS) - this is handled by the migration
+4. Set up the refresh function for real-time aggregation
+
+## 🚀 Deployment
+
+### Static Hosting (Recommended)
+
+The app is a static web application that can be deployed to any static hosting service:
+
+1. **Build the app**
+   ```bash
+   npm run build
+   ```
+
+2. **Deploy the `public/` folder** to your hosting service:
+   - Netlify
+   - Vercel
+   - GitHub Pages
+   - AWS S3 + CloudFront
+   - Any static hosting service
+
+### Environment Variables for Production
+
+Make sure to set your production environment variables in your hosting service's dashboard.
+
+### Database Maintenance
+
+Set up a cron job or scheduled function to refresh the aggregated wait times:
+
+1. Deploy the refresh function to Supabase Edge Functions
+2. Schedule it to run every 15 minutes
+3. Or use any external cron service to call the function URL
+
+## 📱 Progressive Web App (PWA)
+
+The app includes PWA capabilities:
+
+- Installable on mobile devices
+- Offline-ready manifest
+- App-like experience
+
+To customize the PWA:
+1. Update `public/manifest.json`
+2. Add your own app icons (`icon-192.png`, `icon-512.png`)
+
+## 🔒 Security & Privacy
+
+- **Anonymous Reporting**: No user registration required
+- **Rate Limiting**: IP-based rate limiting for report submissions
+- **Data Sanitization**: Comments are automatically sanitized
+- **Row Level Security**: Database access controlled by RLS policies
+
+## 📈 Analytics & Monitoring
+
+The app includes views for analytics:
+- Daily report counts per hospital
+- Average wait times over time
+- Hospital popularity metrics
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## ⚠️ Disclaimer
+
+This application provides community-reported data that may be inaccurate or outdated. In medical emergencies, always call 112 or go to the nearest hospital immediately. The developers are not responsible for decisions made based on this information.
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🆘 Support
+
+For issues and questions:
+1. Check the GitHub issues
+2. Create a new issue with detailed information
+3. Include error messages and steps to reproduce
+
+---
+
+**Made with ❤️ for the Abuja community**

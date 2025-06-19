@@ -2,13 +2,17 @@
   "name": "abj-waittime",
   "version": "0.1.0",
   "private": true,
+  "description": "Community-reported hospital wait times for Abuja",
   "scripts": {
-    "prebuild": "node scripts/generate_config.js",
-    "predev": "node scripts/generate_config.js",
-    "build": "node scripts/load-env.js && tsc && cp src/style.css public/",
-    "dev": "node scripts/load-env.js && tsc --watch & live-server public --port=3000",
-    "seed": "tsx scripts/seed_hospitals.ts",
-    "import-osm": "tsx scripts/import_osm.ts"
+    "setup": "node scripts/setup.js",
+    "predev": "node scripts/load-env.js",
+    "prebuild": "node scripts/load-env.js",
+    "build": "node scripts/load-env.js && cp src/style.css public/ 2>/dev/null || true",
+    "dev": "node scripts/load-env.js && live-server public --port=3000 --open=/",
+    "seed": "node scripts/load-env.js && tsx scripts/seed_hospitals.ts",
+    "import-osm": "node scripts/load-env.js && tsx scripts/import_osm.ts",
+    "deploy-function": "echo 'Deploy the refresh function to Supabase Edge Functions manually'",
+    "test": "echo 'No tests configured yet'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.6",
@@ -26,5 +30,14 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.4",
     "typescript": "^5.4.0"
-  }
+  },
+  "keywords": [
+    "hospital",
+    "wait-times",
+    "abuja",
+    "healthcare",
+    "emergency"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
 }

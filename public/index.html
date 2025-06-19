@@ -4,46 +4,162 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Abuja Hospital Wait Times</title>
+  <meta name="description" content="Find the shortest wait times at hospitals in Abuja. Community-reported real-time data to help you choose the best hospital." />
   <link rel="stylesheet" href="style.css" />
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/mapbox-gl@3.12.0/dist/mapbox-gl.min.js"></script>
   <script src="config.js"></script>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-    #map { height: 500px; width: 100%; margin-top: 20px; border: 1px solid #ddd; }
-    .mapboxgl-popup-content { padding: 15px; }
-    .report-form { margin-top: 10px; }
-    .report-form input, .report-form select { margin: 5px 0; width: 100%; }
-    .hidden { display: none; }
-    .error { color: red; margin: 10px 0; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+      margin: 0; 
+      padding: 20px; 
+      background-color: #f8f9fa;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .header h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    
+    .intro {
+      color: #666;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .search-container {
+      margin-bottom: 20px;
+    }
+    
+    #search {
+      width: 100%;
+      max-width: 400px;
+      padding: 12px 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    
+    #search:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+    
+    #map { 
+      height: 500px; 
+      width: 100%; 
+      margin: 20px 0; 
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .mapboxgl-popup-content { 
+      padding: 0;
+      border-radius: 8px;
+    }
+    
+    .hidden { 
+      display: none; 
+    }
+    
+    .error { 
+      color: #dc3545; 
+      margin: 10px 0; 
+      padding: 10px;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+    }
+    
+    .loading {
+      color: #007bff;
+      margin: 10px 0;
+      text-align: center;
+    }
+    
+    .disclaimer {
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #856404;
+    }
+    
+    .disclaimer a {
+      color: #856404;
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      #map {
+        height: 400px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Abuja Hospital Wait Times</h1>
-  <p class="intro">Find the shortest wait times at hospitals near you. Help others by reporting your wait time.</p>
+  <div class="container">
+    <div class="header">
+      <h1>Abuja Hospital Wait Times</h1>
+      <p class="intro">Find the shortest wait times at hospitals near you. Help others by reporting your wait time.</p>
+    </div>
 
-  <input type="text" id="search" placeholder="Search hospitals" title="Start typing a hospital name" />
-  <div id="loading" class="hidden">Loading hospitals...</div>
-  <div id="error-message" class="error"></div>
-  <ul id="hospital-list" class="hospital-list"></ul>
-  <div id="map"></div>
+    <div class="search-container">
+      <input type="text" id="search" placeholder="Search hospitals..." title="Start typing a hospital name" />
+    </div>
+    
+    <div id="loading" class="loading hidden">Loading hospitals...</div>
+    <div id="error-message" class="error hidden"></div>
+    
+    <div id="map"></div>
 
-  <template id="report-template">
-    <form class="report-form">
-      <input type="number" name="wait" min="0" placeholder="Wait minutes" title="Time you waited before being seen" />
-      <select name="capacity" title="How crowded was the emergency room?" required>
-        <option value="2">Plenty of beds available</option>
-        <option value="1">Limited beds available</option>
-        <option value="0">Full - no beds available</option>
-      </select>
-      <input type="text" name="comment" placeholder="Optional comment" title="Add any extra notes (max 280 characters)" />
-      <button type="submit">Submit Wait Time</button>
-    </form>
-  </template>
+    <template id="report-template">
+      <form class="report-form">
+        <h4>Report Wait Time</h4>
+        <input type="number" name="wait" min="0" max="720" placeholder="Wait time in minutes" title="How long did you wait to be seen?" />
+        <select name="capacity" title="How crowded was the hospital?" required>
+          <option value="">Select capacity level</option>
+          <option value="2">Plenty of beds available</option>
+          <option value="1">Limited beds available</option>
+          <option value="0">Full - no beds available</option>
+        </select>
+        <input type="text" name="comment" placeholder="Optional comment (max 280 characters)" title="Add any extra notes" maxlength="280" />
+        <button type="submit">Submit Report</button>
+      </form>
+    </template>
 
-  <p class="disclaimer">Wait times are community-reported and may be inaccurate. In an emergency, call the hospital or emergency services. <a href="about.html">Learn more</a>.</p>
+    <div class="disclaimer">
+      <strong>Disclaimer:</strong> Wait times are community-reported and may be inaccurate or outdated. 
+      In a medical emergency, call 112 or go to the nearest hospital immediately. 
+      <a href="about.html">Learn more about this service</a>.
+    </div>
+  </div>
 
-  <script type="module" src="src/app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
